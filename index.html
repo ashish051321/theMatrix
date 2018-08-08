@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>Secured Line...</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.0.0/rxjs.umd.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css?family=Hanalei+Fill');
@@ -15,28 +15,29 @@
 
         body {
             background-color: #000000;
-            height:100vh;
+            height: 100vh;
+            overflow: hidden;
         }
-        
-        img#morph{
-            filter: opacity(10%)  grayscale(20%);
-            position:fixed;
+
+        img#morph {
+            filter: opacity(10%) grayscale(20%);
+            position: fixed;
             transform: rotateY(180deg);
-            top:0px;
-            right:0px;
-            height:100vh;
-            max-width:100%;
+            top: 0px;
+            right: 0px;
+            height: 100vh;
+            max-width: 100%;
             z-index: 10;
             transition: all 5s;
         }
 
-        .makeVisible{
+        .makeVisible {
             filter: opacity(100%) grayscale(20%) !important;
         }
 
         div.container {
             margin: 20px;
-            position:relative;
+            position: relative;
             color: #00F500;
             font-family: 'Share Tech Mono';
             letter-spacing: 2px;
@@ -44,6 +45,18 @@
             z-index: 11;
         }
 
+        canvas#matrix {
+            display: none;
+            -webkit-transform: rotateY(180deg);
+            transform: rotateY(180deg);
+            max-width: 100%;
+            position: fixed;
+            z-index: 12;
+            top: 0px;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+        }
     </style>
 
 
@@ -53,9 +66,10 @@
 
     <div class="container">
         <span>Hello Neo.</span>
-        
+
     </div>
     <img src="morpheus.png" id="morph" alt="">
+    <canvas id="matrix"></canvas>
     <script>
         const {
             subject,
@@ -67,8 +81,8 @@
             var sub = new rxjs.Subject();
             var str =
                 "I know why you're here, Neo. I know what you've been doing... why you hardly sleep, why you live alone, and why night after night, you sit by your computer. You're looking for him. I know because I was once looking for the same thing. And when he found me, he told me I wasn't really looking for him. I was looking for an answer. It's the question that drives us, Neo. It's the question that brought you here. You know the question, just as I did.";
-            
-            // var str= "Hello People...";
+
+            // var str = "Hello People...";
             sub.subscribe(d => {
                 document.querySelector(".container > span").innerHTML += d;
             });
@@ -76,13 +90,12 @@
             var count = 0;
 
             var intref = setInterval(() => {
-                if (count == (str.length - 1)){
+                if (count == (str.length - 1)) {
                     clearInterval(intref);
-                    document.getElementById("morph").classList.add("makeVisible");
-                    document.querySelector(".container > span").style.backgroundColor = "rgba(0,0,0,0.7)";
+                    createEffect();
                     // document.querySelector(".container > span").style.color = "white";
                 }
-                    
+
                 if (str[count] == ".")
                     sub.next(str[count++] + "<br>");
                 else
@@ -90,7 +103,98 @@
             }, 80);
 
 
+            function createEffect() {
+                document.getElementById("morph").classList.add("makeVisible");
+                document.querySelector(".container > span").style.backgroundColor =
+                    "rgba(0,0,0,0.7)";
+                setTimeout(() => {
+                    document.getElementById("morph").classList.remove("makeVisible");
+                    setTimeout(() => {
+                        document.getElementById("morph").style.visibility = "hidden";
+                        document.querySelector(".container > span").style.visibility = "hidden";
+                        document.querySelector("canvas#matrix").style.display = "block";
+                        //trigger matrix screen
+                        initCanvas();
+                        setInterval(draw, 100);
 
+                    }, 1000);
+                }, 2000);
+
+            }
+
+            //matrix effect
+
+            var canvas = document.getElementById('matrix');
+            var ctx = canvas.getContext('2d');
+            var fontSize = 18;
+            var chars = generateChars();
+            var columns;
+            var drops; // Current position of last letter (for each column)
+            var drawnToBottom;
+
+            // Generate Matrix code characters
+            function generateChars() {
+                var chars = '0123456789';
+
+                // Get ALL half-width katakana characters by unicode value
+                for (var i = 0; i <= 55; i++) {
+                    chars += String.fromCharCode(i + 65382);
+                }
+
+                return chars.split('');
+            }
+
+            // Initialize default canvas state
+            function initCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                columns = Math.round(canvas.width / fontSize);
+                drops = [];
+
+                // Set initial position on y coordinate for each column
+                for (var i = 0; i < columns; i++) {
+                    drops[i] = 1;
+                }
+
+                drawnToBottom = false;
+            }
+
+            // Resize canvas to fit window
+            window.onresize = function () {
+                initCanvas();
+            };
+
+            function draw() {
+                // Set nearly transparent background so character trail is visible
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Set color and font of falling letters
+                ctx.fillStyle = '#19FF19';
+                ctx.font = 'bold ' + fontSize + 'px monospace';
+
+                var dropCount = drops.length;
+                var charCount = chars.length;
+
+                for (var i = 0; i < dropCount; i++) {
+                    // Choose a random letter
+                    var text = chars[Math.floor(Math.random() * charCount)];
+                    // Get the y position of the letter
+                    var rowNum = drops[i] * fontSize;
+                    // Draw it!
+                    ctx.fillText(text, i * fontSize, rowNum);
+
+                    // Check if the canvas has been drawn to the bottom
+                    if (rowNum > canvas.height) drawnToBottom = true;
+
+                    // Randomly reset the y position of a column
+                    if ((!drawnToBottom && Math.random() > 0.925) || (drawnToBottom && Math.random() > 0.95))
+                        drops[i] = 0;
+
+                    drops[i]++;
+                }
+            }
 
         });
     </script>
