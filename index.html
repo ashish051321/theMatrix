@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.0.0/rxjs.umd.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Hanalei+Fill');
+
+        @import url('https://fonts.googleapis.com/css?family=Share+Tech+Mono');
+
+
+        body {
+            background-color: #000000;
+            height:100vh;
+        }
+        
+        img#morph{
+            filter: opacity(10%)  grayscale(20%);
+            position:fixed;
+            transform: rotateY(180deg);
+            top:0px;
+            right:0px;
+            height:100vh;
+            max-width:100%;
+            z-index: 10;
+            transition: all 5s;
+        }
+
+        .makeVisible{
+            filter: opacity(100%) grayscale(20%) !important;
+        }
+
+        div.container {
+            margin: 20px;
+            position:relative;
+            color: #00F500;
+            font-family: 'Share Tech Mono';
+            letter-spacing: 2px;
+            word-spacing: 5px;
+            z-index: 11;
+        }
+
+    </style>
+
+
+</head>
+
+<body>
+
+    <div class="container">
+        <span>Hello Neo.</span>
+        
+    </div>
+    <img src="morpheus.png" id="morph" alt="">
+    <script>
+        const {
+            subject,
+            interval,
+            from
+        } = rxjs; //importing the from opearator
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var sub = new rxjs.Subject();
+            var str =
+                "I know why you're here, Neo. I know what you've been doing... why you hardly sleep, why you live alone, and why night after night, you sit by your computer. You're looking for him. I know because I was once looking for the same thing. And when he found me, he told me I wasn't really looking for him. I was looking for an answer. It's the question that drives us, Neo. It's the question that brought you here. You know the question, just as I did.";
+            
+            // var str= "Hello People...";
+            sub.subscribe(d => {
+                document.querySelector(".container > span").innerHTML += d;
+            });
+
+            var count = 0;
+
+            var intref = setInterval(() => {
+                if (count == (str.length - 1)){
+                    clearInterval(intref);
+                    document.getElementById("morph").classList.add("makeVisible");
+                    document.querySelector(".container > span").style.backgroundColor = "rgba(0,0,0,0.7)";
+                    // document.querySelector(".container > span").style.color = "white";
+                }
+                    
+                if (str[count] == ".")
+                    sub.next(str[count++] + "<br>");
+                else
+                    sub.next(str[count++]);
+            }, 80);
+
+
+
+
+        });
+    </script>
+</body>
+
+</html>
